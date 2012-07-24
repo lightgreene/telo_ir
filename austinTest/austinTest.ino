@@ -67,7 +67,7 @@
 #define CLEAR_ALL_TIMER5_INT_FLAGS    (TIFR5 = TIFR5)
 
 #include <threeMotorsDriver.h>
-#asinclude <irSensor.h>
+#include <irSensor.h>
 
 #define SERIAL_PORT Serial
 #define SERIAL_PORT_BLUETOOTH Serial2
@@ -187,6 +187,12 @@ bool stopIfFault()
   {
       motorDriver.setBrakesC();
       SERIAL_PORT.println("Fault detected in top motor ");
+      result = true;
+  }
+  if(edgeSensor.senseDanger())
+  {
+      motorDriver.setBrakesAB();
+      Serial.println("Danger Danger");
       result = true;
   }
   return result;
@@ -689,6 +695,7 @@ void doEncoderRight()
 void setup()  
 {
   SERIAL_PORT.begin(SERIAL_SPEED);
+  Serial.begin(9600);
   SERIAL_PORT.println("ready for commands");
   SERIAL_PORT_BLUETOOTH.begin(BLUETOOTH_SPEED);   // usually connect to bluetooth on serial2
   motorDriver.setCoastAB();
@@ -714,6 +721,7 @@ void setup()
 
 void loop()
 {
+  edgeSensor.printData();
   inputLength = 0;
   charIn = 0;
   while (charIn != COMMAND_END_CHARACTER && inputLength < INPUT_BUFFER_SIZE)
@@ -733,7 +741,7 @@ void loop()
     }
   } 
   
-  edgeSensor.printData();
+  
   
   //now flush anything that came after the COMMAND_END_CHARACTER
   if (SERIAL_PORT_BLUETOOTH.available())
